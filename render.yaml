@@ -1,10 +1,8 @@
 services:
   - type: web
     name: udp-chat
-    runtime: java
+    env: docker
     plan: free
-    buildCommand: javac server/UDPServer.java
-    startCommand: cd server && java UDPServer
     envVars:
       - key: PORT
         value: 33333
