@@ -8,34 +8,39 @@ const app = express();
 // Use Render's PORT env var or fallback to local dev ports
 const PORT = process.env.PORT || 3000;
 
-// Create WebSocket server attached to HTTP server
+// Create HTTP server with minimal settings
 const server = app.listen(PORT, () => {
     console.log(`Web server running on port ${PORT}`);
 });
 
-// Attach WebSocket to same port as HTTP
-const wsServer = new WebSocket.Server({ server });
+// WebSocket with no heartbeat/ping
+const wsServer = new WebSocket.Server({ 
+    server,
+    clientTracking: false // Don't track clients
+});
 
-// Spawn UDP client process
+// Single UDP client for all connections
 const udpClient = spawn('node', [path.join(__dirname, 'client.js')], {
     stdio: ['pipe', 'pipe', 'pipe']
 });
 
-// Handle web client connections
+// Handle connections with minimal overhead
 wsServer.on('connection', (ws) => {
-    // Stream UDP client output to web terminal
+    // Stream UDP output directly
     udpClient.stdout.on('data', (data) => {
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(data.toString());
         }
     });
 
-    // Handle messages from web client
+    // Forward messages directly
     ws.on('message', (msg) => {
-        // Send to UDP client's stdin
         udpClient.stdin.write(msg + '\n');
     });
 });
 
-// Serve static files
-app.use(express.static('public'));
+// Serve static files with no caching
+app.use(express.static('public', {
+    etag: false,
+    lastModified: false
+}));

@@ -61,9 +61,18 @@
                 },
                 rows: 24,
                 cols: 80,
+                scrollback: 0,  // Disable scrollback
                 convertEol: true
             });
             term.open(document.getElementById('terminal'));
+            
+            // Keep track of active messages
+            const messages = [];
+            
+            function redrawMessages() {
+                term.clear();
+                messages.forEach(msg => term.writeln(msg));
+            }
             
             const form = document.getElementById('form');
             const input = document.getElementById('input');
@@ -74,12 +83,18 @@
             
             // Handle raw terminal output
             socket.onmessage = (event) => {
-                // Check if it's a clear command
-                if (event.data === '\x1B[2J\x1B[H') {
-                    term.clear();
-                } else {
-                    term.write(event.data);
-                }
+                // Add new message
+                messages.push(event.data);
+                redrawMessages();
+                
+                // Remove this message after 10 seconds
+                setTimeout(() => {
+                    const index = messages.indexOf(event.data);
+                    if (index > -1) {
+                        messages.splice(index, 1);
+                        redrawMessages();
+                    }
+                }, 5000);
             };
 
             form.onsubmit = (e) => {
