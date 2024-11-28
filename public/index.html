@@ -74,7 +74,12 @@
             
             // Handle raw terminal output
             socket.onmessage = (event) => {
-                term.write(event.data);
+                // Check if it's a clear command
+                if (event.data === '\x1B[2J\x1B[H') {
+                    term.clear();
+                } else {
+                    term.write(event.data);
+                }
             };
 
             form.onsubmit = (e) => {

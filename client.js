@@ -14,7 +14,8 @@ client.bind(UDP_PORT, () => {
 });
 
 function displayMessages() {
-    console.clear();
+    // Use ANSI escape codes to clear screen
+    process.stdout.write('\x1B[2J\x1B[H');
     for (const msg of messages) {
         process.stdout.write(msg + '\n');
     }
@@ -23,7 +24,8 @@ function displayMessages() {
 // Listen for messages
 client.on('message', (msg) => {
     const message = msg.toString().trim();
-    if (message) {
+    // Only add if message is not empty and not already shown
+    if (message && !messages.has(message)) {
         messages.add(message);
         displayMessages();
         
