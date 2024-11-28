@@ -2,6 +2,8 @@ services:
   - type: web
     name: udp-chat
     env: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: java UDPServer
     plan: free
     envVars:
       - key: PORT
