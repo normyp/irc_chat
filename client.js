@@ -16,9 +16,6 @@ client.bind(UDP_PORT, () => {
 // Clear console and redraw messages
 function updateDisplay() {
     console.clear();
-    for (const [msg] of messageTimeouts) {
-        console.log(msg);
-    }
 }
 
 // Listen for messages
@@ -31,7 +28,7 @@ client.on('message', (msg, rinfo) => {
         messageTimeouts.set(message, setTimeout(() => {
             messageTimeouts.delete(message);
             updateDisplay();
-        }, 10000)); // 10 seconds
+        }, 5000)); // 5 seconds
         
         updateDisplay();
     }
