@@ -1,7 +1,7 @@
 import java.net.*;
 
 public class UDPServer {
-    private static final int PORT = 33333;
+    private static final int PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "33333"));
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting UDP Server on port " + PORT);
@@ -15,6 +15,8 @@ public class UDPServer {
             
             // Just broadcast it back out
             socket.send(packet);
+            
+            System.out.println("Forwarded message of length: " + packet.getLength());
         }
     }
 }
