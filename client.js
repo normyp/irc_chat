@@ -16,6 +16,7 @@ client.bind(UDP_PORT, () => {
 // Clear console and redraw messages
 function updateDisplay() {
     console.clear();
+    console.log(msg);
 }
 
 // Listen for messages
