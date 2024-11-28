@@ -11,19 +11,14 @@ const messageTimeouts = new Map();
 // Enable broadcast and bind to the broadcast port
 client.bind(UDP_PORT, () => {
     client.setBroadcast(true);
-    console.log('Client ready to receive broadcasts');
 });
 
 // Clear console and redraw messages
 function updateDisplay() {
     console.clear();
-    console.log('Active Messages:');
-    console.log('-----------------');
     for (const [msg] of messageTimeouts) {
         console.log(msg);
     }
-    console.log('-----------------');
-    console.log('Type a message and press Enter to send.');
 }
 
 // Listen for messages
@@ -50,4 +45,4 @@ process.stdin.on('data', (data) => {
     }
 });
 
-console.log('UDP Client started. Type a message and press Enter to send.');
+console.log('Type a message and press Enter to send.');
