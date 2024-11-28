@@ -9,4 +9,4 @@ services:
     startCommand: ""
     envVars:
       - key: PORT
-        value: 33333
+        value: 10000
