@@ -3,15 +3,20 @@ const express = require('express');
 const WebSocket = require('ws');
 const app = express();
 
-const WEB_PORT = 3000;
+// Use Render's PORT env var or fallback to local dev ports
+const PORT = process.env.PORT || 3000;
 const UDP_PORT = 33333;
-const WS_PORT = 33334;
 
 // Create UDP server
 const udpServer = dgram.createSocket('udp4');
 
-// Create WebSocket server for web clients
-const wsServer = new WebSocket.Server({ port: WS_PORT });
+// Create WebSocket server attached to HTTP server
+const server = app.listen(PORT, () => {
+    console.log(`Web server running on port ${PORT}`);
+});
+
+// Attach WebSocket to same port as HTTP
+const wsServer = new WebSocket.Server({ server });
 
 // Keep track of seen message IDs
 const seenMessages = new Set();
@@ -60,9 +65,4 @@ app.use(express.static('public'));
 
 udpServer.bind(UDP_PORT, () => {
     console.log(`UDP broadcast server running on port ${UDP_PORT}`);
-});
-
-app.listen(WEB_PORT, () => {
-    console.log(`Web server running on port ${WEB_PORT}`);
-    console.log(`WebSocket server running on port ${WS_PORT}`);
 });
