@@ -1,14 +1,12 @@
 const dgram = require('dgram');
 const express = require('express');
 const WebSocket = require('ws');
+const { spawn } = require('child_process');
+const path = require('path');
 const app = express();
 
 // Use Render's PORT env var or fallback to local dev ports
 const PORT = process.env.PORT || 3000;
-const UDP_PORT = 33333;
-
-// Create UDP server
-const udpServer = dgram.createSocket('udp4');
 
 // Create WebSocket server attached to HTTP server
 const server = app.listen(PORT, () => {
@@ -18,23 +16,26 @@ const server = app.listen(PORT, () => {
 // Attach WebSocket to same port as HTTP
 const wsServer = new WebSocket.Server({ server });
 
-// Handle incoming UDP messages - just broadcast them
-udpServer.on('message', (msg) => {
-    udpServer.setBroadcast(true);
-    udpServer.send(msg, UDP_PORT, '255.255.255.255');
+// Spawn UDP client process
+const udpClient = spawn('node', [path.join(__dirname, 'client.js')], {
+    stdio: ['pipe', 'pipe', 'pipe']
 });
 
-// Handle web client messages - just forward to UDP
+// Handle web client connections
 wsServer.on('connection', (ws) => {
+    // Stream UDP client output to web terminal
+    udpClient.stdout.on('data', (data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(data.toString());
+        }
+    });
+
+    // Handle messages from web client
     ws.on('message', (msg) => {
-        udpServer.setBroadcast(true);
-        udpServer.send(Buffer.from(msg), UDP_PORT, '255.255.255.255');
+        // Send to UDP client's stdin
+        udpClient.stdin.write(msg + '\n');
     });
 });
 
 // Serve static files
 app.use(express.static('public'));
-
-udpServer.bind(UDP_PORT, () => {
-    console.log(`UDP broadcast server running on port ${UDP_PORT}`);
-});

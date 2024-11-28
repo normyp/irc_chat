@@ -1,98 +1,80 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>UDP Global Chat</title>
-        <style>    
+        <title>UDP Terminal</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+        <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+        <style>
             body {
                 margin: 0;
                 padding: 20px;
-                font-family: Arial, sans-serif;
+                background: #1e1e1e;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
-
-            .chat-container {
-                position: fixed;
-                bottom: 80px;
-                left: 20px;
-                right: 20px;
-                height: calc(100vh - 200px);
-                border: 1px solid #ddd;
-                overflow-y: auto;
-                background: #fff;
+            #terminal {
+                flex-grow: 1;
+                background: #000;
                 padding: 10px;
+                border-radius: 5px;
             }
-
-            #messages { 
-                list-style-type: none; 
-                margin: 0; 
-                padding: 0;
+            form {
+                margin-top: 10px;
+                display: flex;
+                gap: 10px;
             }
-
-            .message-fade {
-                padding: 5px;
-                margin: 2px 0;
-                opacity: 1;
-                transition: opacity 1s ease-out;
+            input {
+                flex-grow: 1;
+                padding: 8px;
+                background: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                color: #fff;
+                border-radius: 4px;
             }
-
-            .timestamp {
-                color: #666;
-                font-size: 0.8em;
-                margin-left: 8px;
+            button {
+                padding: 8px 20px;
+                background: #0066cc;
+                border: none;
+                color: white;
+                border-radius: 4px;
+                cursor: pointer;
             }
-
-            #form {
-                position: fixed;
-                bottom: 20px;
-                left: 20px;
-                right: 20px;
-            }
-
-            #input {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-            }
-
-            #form button {
-                display: none;
+            button:hover {
+                background: #0052a3;
             }
         </style>
     </head>
     <body>
-        <div class="chat-container">
-            <ul id="messages"></ul>
-        </div>
+        <div id="terminal"></div>
         <form id="form">
             <input id="input" autocomplete="off" placeholder="Type a message..." />
             <button type="submit">Send</button>
         </form>
     
         <script>
-            const messages = document.getElementById('messages');
+            const term = new Terminal({
+                cursorBlink: true,
+                theme: {
+                    background: '#000',
+                    foreground: '#fff'
+                },
+                rows: 24,
+                cols: 80
+            });
+            term.open(document.getElementById('terminal'));
+            
             const form = document.getElementById('form');
             const input = document.getElementById('input');
             
-            // Connect to WebSocket on same port as HTTP
+            // Connect to WebSocket
             const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const socket = new WebSocket(`${wsProtocol}//${location.host}`);
             
+            // Handle raw terminal output
             socket.onmessage = (event) => {
-                addMessage(event.data);
+                term.write(event.data);
             };
-            
-            function addMessage(text) {
-                const item = document.createElement('li');
-                item.classList.add('message-fade');
-                const time = new Date().toLocaleTimeString();
-                item.innerHTML = `${text}<span class="timestamp">${time}</span>`;
-                messages.appendChild(item);
-                messages.scrollTop = messages.scrollHeight;
-                
-                setTimeout(() => {
-                    item.style.opacity = '0';
-                    setTimeout(() => item.remove(), 1000);
-                }, 9000);
-            }
 
             form.onsubmit = (e) => {
                 e.preventDefault();
