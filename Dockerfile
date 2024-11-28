@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:11-jdk
 
 WORKDIR /app
 
@@ -8,11 +8,12 @@ COPY server/UDPServer.java .
 # Compile it
 RUN javac UDPServer.java
 
-# Expose UDP port
+# Expose ports
+EXPOSE 10000
 EXPOSE 33333/udp
 
 # Set environment variable
-ENV PORT=33333
+ENV PORT=10000
 
 # Run the server
 ENTRYPOINT ["java", "UDPServer"]
