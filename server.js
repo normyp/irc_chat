@@ -80,6 +80,75 @@ const wordFilters = {
     'kill': 'hug'
 };
 
+// Common names to detect and replace (hundreds of common names from various cultures)
+const commonNames = [
+    // English names
+    'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles',
+    'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen',
+    'Christopher', 'Daniel', 'Paul', 'Mark', 'Donald', 'George', 'Kenneth', 'Steven', 'Edward', 'Brian',
+    'Margaret', 'Lisa', 'Nancy', 'Betty', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna',
+    'Anthony', 'Kevin', 'Jason', 'Matthew', 'Gary', 'Timothy', 'Jose', 'Larry', 'Jeffrey', 'Frank',
+    'Michelle', 'Carol', 'Amanda', 'Melissa', 'Deborah', 'Stephanie', 'Rebecca', 'Laura', 'Sharon', 'Cynthia',
+    'Scott', 'Eric', 'Stephen', 'Andrew', 'Raymond', 'Gregory', 'Joshua', 'Jerry', 'Dennis', 'Walter',
+    'Catherine', 'Christine', 'Samantha', 'Virginia', 'Rachel', 'Hannah', 'Nicole', 'Amy', 'Helen', 'Anna',
+    // Spanish names
+    'Carlos', 'Juan', 'Luis', 'Miguel', 'Jose', 'Francisco', 'Pedro', 'Antonio', 'Manuel', 'Ricardo',
+    'Maria', 'Ana', 'Sofia', 'Isabella', 'Carmen', 'Rosa', 'Angela', 'Elena', 'Lucia', 'Adriana',
+    // Chinese names
+    'Wei', 'Li', 'Ming', 'Hui', 'Yan', 'Ling', 'Xiao', 'Hong', 'Yu', 'Jing',
+    // Indian names
+    'Raj', 'Amit', 'Arun', 'Rahul', 'Priya', 'Neha', 'Anjali', 'Pooja', 'Ravi', 'Ajay',
+    'Sunita', 'Anita', 'Deepa', 'Meera', 'Kavita', 'Sanjay', 'Vijay', 'Rajesh', 'Sunil', 'Anil',
+    // Arabic names
+    'Mohammed', 'Ahmad', 'Ali', 'Hassan', 'Hussein', 'Fatima', 'Aisha', 'Zainab', 'Omar', 'Ibrahim',
+    // African names
+    'Kwame', 'Kofi', 'Abena', 'Kwesi', 'Efua', 'Kojo', 'Kwaku', 'Ama', 'Yaw', 'Adwoa',
+    // Japanese names
+    'Hiroshi', 'Takashi', 'Kenji', 'Yuki', 'Akiko', 'Yoko', 'Kazuo', 'Satoshi', 'Kaori', 'Yumi',
+    // Korean names
+    'Min', 'Jin', 'Soo', 'Jung', 'Hye', 'Sung', 'Young', 'Jae', 'Hyun', 'Seung',
+    // Russian names
+    'Ivan', 'Dmitri', 'Vladimir', 'Boris', 'Natasha', 'Olga', 'Tatiana', 'Igor', 'Sergei', 'Anna'
+].map(name => name.toLowerCase());
+
+// Expanded fantasy names list
+const fantasyNames = [
+    // Nature-inspired
+    'Starlight', 'Rainbow', 'Moonbeam', 'Sunshine', 'Cloudwhisper', 'Dewdrop', 'Riverflow', 'Skywalker',
+    'Stormrider', 'Dreamweaver', 'Firefly', 'Windrunner', 'Sunflower', 'Moonshadow', 'Stardust',
+    'Raindance', 'Twilight', 'Aurora', 'Phoenix', 'Crystal', 'Shadow', 'Echo', 'Nova', 'Cosmos',
+    'Nebula', 'Galaxy', 'Comet', 'Luna', 'Sol', 'Zenith',
+    // Mythological
+    'Atlas', 'Artemis', 'Apollo', 'Athena', 'Hermes', 'Iris', 'Neptune', 'Orion', 'Perseus', 'Zeus',
+    'Thor', 'Loki', 'Odin', 'Freya', 'Valkyrie', 'Dragon', 'Griffin', 'Phoenix', 'Pegasus', 'Sphinx',
+    // Fantasy creatures
+    'Pixie', 'Sprite', 'Fairy', 'Unicorn', 'Dragon', 'Mermaid', 'Wizard', 'Elf', 'Nymph', 'Sylph',
+    // Elements
+    'Ember', 'Frost', 'Breeze', 'Storm', 'Blaze', 'Mist', 'Thunder', 'Lightning', 'Glacier', 'Flame',
+    // Gems and minerals
+    'Diamond', 'Ruby', 'Sapphire', 'Emerald', 'Jade', 'Amber', 'Opal', 'Pearl', 'Topaz', 'Onyx',
+    // Celestial
+    'Astro', 'Cosmic', 'Star', 'Moon', 'Sun', 'Meteor', 'Pulsar', 'Quasar', 'Eclipse', 'Solstice',
+    // Colors
+    'Azure', 'Crimson', 'Violet', 'Indigo', 'Golden', 'Silver', 'Obsidian', 'Scarlet', 'Cerulean', 'Ivory',
+    // Mystical concepts
+    'Destiny', 'Fate', 'Fortune', 'Spirit', 'Soul', 'Mystic', 'Legend', 'Myth', 'Dream', 'Vision',
+    // Nature elements
+    'Ocean', 'Forest', 'Mountain', 'River', 'Valley', 'Garden', 'Meadow', 'Grove', 'Glen', 'Brook',
+    // Time concepts
+    'Dawn', 'Dusk', 'Midnight', 'Twilight', 'Evening', 'Morning', 'Sunset', 'Sunrise', 'Eclipse', 'Eternal',
+    // Weather phenomena
+    'Rainbow', 'Storm', 'Thunder', 'Lightning', 'Tornado', 'Hurricane', 'Blizzard', 'Tempest', 'Zephyr', 'Breeze'
+];
+
+// Create name pattern
+const namePattern = new RegExp('\\b(' + commonNames.join('|') + ')\\b', 'gi');
+
+// Function to get random fantasy name
+function getRandomFantasyName() {
+    return fantasyNames[Math.floor(Math.random() * fantasyNames.length)];
+}
+
 // Create regex pattern for all words to filter
 const wordPattern = new RegExp('\\b(' + Object.keys(wordFilters).join('|') + ')\\b', 'gi');
 
@@ -112,8 +181,11 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Replace real names with fantasy names
+        let processedText = msg.text.replace(namePattern, () => getRandomFantasyName());
+
         // Filter out inappropriate words
-        const filteredText = msg.text.replace(wordPattern, matched => {
+        processedText = processedText.replace(wordPattern, matched => {
             // Preserve the original capitalization
             const replacement = wordFilters[matched.toLowerCase()];
             return matched[0] === matched[0].toUpperCase() 
@@ -122,7 +194,7 @@ io.on('connection', (socket) => {
         });
         
         // Update the message text with filtered version
-        msg.text = filteredText;
+        msg.text = processedText;
         
         io.emit('chat message', msg);
     });
